@@ -92,17 +92,50 @@ def humanize_chunk(chunk, api_key=None):
         return chunk
 
 def humanize_text(text, max_words=500):
+    """
+    Humanize text by processing it in chunks while preserving paragraph structure.
+   
+    Args:
+        text (str): Text to be humanized
+        max_words (int): Maximum words per chunk
+   
+    Returns:
+        str: Humanized text with preserved formatting
+    """
+    # Validate input
     if not text or len(text.split()) < 50:
         return text
-
+ 
+    # Get API key from environment
     api_key = "71b72a19738541f28fbe02460335e12c"
     if not api_key:
         print("Error: HIX API Key not set in environment variables")
         return text
-
-    chunks = split_text_into_chunks(text, max_words)
-    humanized_chunks = [humanize_chunk(chunk, api_key) for chunk in chunks]
-    return ' '.join(humanized_chunks)
+   
+    # Split text into paragraphs first
+    paragraphs = text.split('\n\n')
+    humanized_paragraphs = []
+   
+    for paragraph in paragraphs:
+        if not paragraph.strip():
+            humanized_paragraphs.append('')
+            continue
+           
+        # Split paragraph into chunks if it's too long
+        chunks = split_text_into_chunks(paragraph, max_words)
+       
+        # Humanize each chunk
+        humanized_chunks = []
+        for chunk in chunks:
+            humanized_chunk = humanize_chunk(chunk, api_key)
+            humanized_chunks.append(humanized_chunk)
+       
+        # Join the chunks of this paragraph
+        humanized_paragraph = ' '.join(humanized_chunks)
+        humanized_paragraphs.append(humanized_paragraph)
+   
+    # Reassemble humanized paragraphs with proper spacing
+    return '\n\n'.join(humanized_paragraphs)
 
 def improve_grammar_and_readability(content, primary_keywords, secondary_keywords):
     improvement_prompt = f"""Please review and improve the following text.
